@@ -156,6 +156,26 @@ func (c *GfCache) Get(ctx context.Context, key string) *gvar.Var {
 	return v
 }
 
+// 通过tag查询所有的key
+func (c *GfCache) GetByTag(ctx context.Context, tag string) (ks []string) {
+	tagKey := c.setTagKey(tag)
+	keys := c.Get(ctx, tagKey)
+	if !keys.IsNil() {
+		//如果是字符串
+		if kStr, ok := keys.Val().(string); ok {
+			js, err := gjson.DecodeToJson(kStr)
+			if err != nil {
+				g.Log().Error(ctx, err)
+				return
+			}
+			ks = gconv.SliceStr(js.Interface())
+		} else {
+			ks = gconv.SliceStr(keys.Val())
+		}
+	}
+	return
+}
+
 // GetOrSet returns the value of <tagKey>,
 // or sets <tagKey>-<value> pair and returns <value> if <tagKey> does not exist in the cache.
 // The tagKey-value pair expires after <duration>.
