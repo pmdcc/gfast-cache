@@ -91,7 +91,7 @@ func (c *GfCache) cacheTagKey(ctx context.Context, key interface{}, tag string) 
 	if tagKey != "" {
 		tagValue := []interface{}{key}
 		value, _ := c.cache.Get(ctx, tagKey)
-		if value != nil {
+		if !value.IsNil() {
 			var keyValue []interface{}
 			//若是字符串
 			if kStr, ok := value.Val().(string); ok {
@@ -237,6 +237,7 @@ func (c *GfCache) Removes(ctx context.Context, keys []string) {
 // RemoveByTag deletes the <tag> in the cache, and returns its value.
 func (c *GfCache) RemoveByTag(ctx context.Context, tag string) {
 	c.tagSetMux.Lock()
+	defer c.tagSetMux.Unlock()
 	tagKey := c.setTagKey(tag)
 	//删除tagKey 对应的 key和值
 	keys := c.Get(ctx, tagKey)
@@ -256,7 +257,6 @@ func (c *GfCache) RemoveByTag(ctx context.Context, tag string) {
 		}
 	}
 	c.Remove(ctx, tagKey)
-	c.tagSetMux.Unlock()
 }
 
 // RemoveByTags deletes <tags> in the cache.
